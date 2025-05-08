@@ -1,1 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FR10 - Hentai</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #121212;
+      color: #fff;
+    }
+    header {
+      background: #1f1f1f;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #333;
+    }
+    header h1 {
+      margin: 0;
+      color: #00ffc3;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 1rem;
+    }
+    #searchContainer {
+      display: flex;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+    #searchInput {
+      padding: 0.5rem;
+      width: 300px;
+      border-radius: 20px;
+      border: 1px solid #333;
+    }
+    #videoGrid, #recommendedVideos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .video-card {
+      background: #222;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .video-card:hover {
+      transform: scale(1.02);
+    }
+    .video-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+    .video-card .title {
+      padding: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+    #watchPage {
+      padding: 1rem;
+    }
+    .hidden {
+      display: none;
+    }
+    .video-player video {
+      width: 100%;
+      max-height: 400px;
+    }
+    .interaction button {
+      margin-right: 1rem;
+      background: #00ffc3;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .interaction button:hover {
+      background: #00b894;
+    }
+    .comments {
+      margin-top: 1rem;
+    }
+    .comments textarea {
+      width: 100%;
+      height: 60px;
+      margin-bottom: 0.5rem;
+    }
+    .comments button {
+      background: #fff;
+      color: #000;
+    }
+    .upload-section {
+      padding: 1rem;
+    }
+    form input, form textarea {
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+    }
+    form button {
+      background: #00ffc3;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .recommended {
+      background-color: #333;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 2rem;
+    }
+    .recommended h3 {
+      margin: 0;
+      padding: 0.5rem;
+      font-size: 1.3rem;
+      color: #00ffc3;
+    }
+    .admin-panel {
+      background: #1f1f1f;
+      padding: 1rem;
+      border-radius: 10px;
+      margin: 1rem;
+      border: 1px solid #333;
+    }
+    .admin-panel h2 {
+      color: #00ffc3;
+    }
+    .admin-list {
+      margin-top: 1rem;
+    }
+    .admin-video-item {
+      background: #2a2a2a;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .admin-video-item span {
+      flex: 1;
+    }
+    .admin-video-item button {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>HAnime</h1>
+    <nav>
+      <a href="#" onclick="showSection('home')">Home</a> <br> <br>
+      <a href="#" id="uploadLink" onclick="checkAccess('upload')" class="hidden">Upload</a>
+      <a href="#" id="adminLink" onclick="checkAccess('adminPanel')" class="hidden">Admin Panel</a>
+    </nav>
+  </header>
 
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="Search for videos..." oninput="searchVideos()">
+  </div>
+
+  <main id="home">
+    <section class="video-grid" id="videoGrid"></section>
+    <section id="recommendedVideos" class="recommended">
+      <h3>Recommended Videos</h3>
+      <div class="video-grid" id="recommendedGrid"></div>
+    </section>
+  </main>
+
+  <section id="watchPage" class="hidden">
+    <div class="video-player">
+      <video id="watchVideo" controls></video>
+      <h2 id="videoTitle"></h2>
+      <p id="videoDescription"></p>
+      <div class="interaction">
+        <button onclick="likeVideo()">Like</button>
+        <button onclick="shareVideo()">Share</button>
+      </div>
+      <div class="comments">
+        <h3>Comments</h3>
+        <textarea id="commentInput" placeholder="Leave a comment..."></textarea>
+        <button onclick="addComment()">Post</button>
+        <div id="commentList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="upload" class="upload-section hidden">
+    <h2>Upload Video</h2>
+    <form id="uploadForm">
+      <input type="text" id="videoTitleInput" placeholder="Video Title" required><br>
+      <textarea id="videoDescInput" placeholder="Video Description" required></textarea><br>
+      <input type="file" id="videoFile" accept="video/*" required><br>
+      <input type="file" id="thumbFile" accept="image/*" required><br>
+      <button type="submit">Upload</button>
+    </form>
+  </section>
+
+  <section id="adminPanel" class="admin-panel hidden">
+    <h2>Admin Panel</h2>
+    <p>Welcome, Admin! Use the "Upload" section to add new content.</p>
+    <ul>
+      <li>Total Uploaded Videos: <span id="videoCount">0</span></li>
+    </ul>
+    <div class="admin-list" id="adminVideoList"></div>
+  </section>
+
+  <script>
+    let videos = [];
+    const isAdmin = true;
+
+    if (isAdmin) {
+      document.getElementById("uploadLink").classList.remove("hidden");
+      document.getElementById("adminLink").classList.remove("hidden");
+    }
+
+    function showSection(id) {
+      ['home', 'upload', 'watchPage', 'adminPanel'].forEach(s => {
+        document.getElementById(s).classList.add("hidden");
+      });
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function checkAccess(sectionId) {
+      const password = prompt("Enter admin password:");
+      if (password === "80085") {
+        showSection(sectionId);
+      } else {
+        alert("Access denied!");
+      }
+    }
+
+    document.getElementById("uploadForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const title = document.getElementById("videoTitleInput").value;
+      const desc = document.getElementById("videoDescInput").value;
+      const video = document.getElementById("videoFile").files[0];
+      const thumb = document.getElementById("thumbFile").files[0];
+
+      const readerVideo = new FileReader();
+      const readerThumb = new FileReader();
+
+      readerVideo.onload = function(evt) {
+        const videoSrc = evt.target.result;
+        readerThumb.onload = function(evtt) {
+          const thumbSrc = evtt.target.result;
+          const videoData = { title, desc, videoSrc, thumbSrc, comments: [] };
+          videos.push(videoData);
+          loadVideos();
+          updateAdminStats();
+          showSection('home');
+        };
+        readerThumb.readAsDataURL(thumb);
+      };
+      readerVideo.readAsDataURL(video);
+    });
+
+    function loadVideos() {
+      const container = document.getElementById("videoGrid");
+      container.innerHTML = "";
+      videos.forEach((v, i) => {
+        const div = document.createElement("div");
+        div.className = "video-card";
+        div.innerHTML = `<img src="${v.thumbSrc}" alt="thumb"><div class="title">${v.title}</div>`;
+        div.onclick = () => showVideo(i);
+        container.appendChild(div);
+      });
+      updateAdminList();
+    }
+
+    function showVideo(index) {
+      const v = videos[index];
+      document.getElementById("watchVideo").src = v.videoSrc;
+      document.getElementById("videoTitle").innerText = v.title;
+      document.getElementById("videoDescription").innerText = v.desc;
+      document.getElementById("commentList").innerHTML = v.comments.map(c => `<p>${c}</p>`).join('');
+      document.getElementById("watchVideo").scrollIntoView();
+      showSection("watchPage");
+      window.currentVideo = v;
+    }
+
+    function likeVideo() {
+      alert("You liked this video!");
+    }
+
+    function shareVideo() {
+      alert("Shared successfully!");
+    }
+
+    function addComment() {
+      const input = document.getElementById("commentInput");
+      const comment = input.value.trim();
+      if (comment) {
+        window.currentVideo.comments.push(comment);
+        document.getElementById("commentList").innerHTML += `<p>${comment}</p>`;
+        input.value = "";
+      }
+    }
+
+    function searchVideos() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const filteredVideos = videos.filter(v => v.title.toLowerCase().includes(query));
+      loadVideoGrid(filteredVideos);
+    }
+
+    function loadVideoGrid(videosToLoad) {
+      const container = document.getElementById("videoGrid");
+      container.innerHTML = "";
+      videosToLoad.forEach((v, i) => {
+        const div = document.createElement("div");
+        div.className = "video-card";
+        div.innerHTML = `<img src="${v.thumbSrc}" alt="thumb"><div class="title">${v.title}</div>`;
+        div.onclick = () => showVideo(i);
+        container.appendChild(div);
+      });
+    }
+
+    function updateAdminStats() {
+      document.getElementById("videoCount").innerText = videos.length;
+    }
+
+    function updateAdminList() {
+      const list = document.getElementById("adminVideoList");
+      list.innerHTML = "";
+      videos.forEach((v, i) => {
+        const item = document.createElement("div");
+        item.className = "admin-video-item";
+        item.innerHTML = `<span>${v.title}</span><button onclick="deleteVideo(${i})">Delete</button>`;
+        list.appendChild(item);
+      });
+    }
+
+    function deleteVideo(index) {
+      if (confirm("Delete this video?")) {
+        videos.splice(index, 1);
+        loadVideos();
+        updateAdminStats();
+      }
+    }
+
+    // Initial load
+    loadVideos();
+    updateAdminStats();
+  </script>
+</body>
+</html>
